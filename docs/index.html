@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaco-256 - Modern Encryption Library</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13131a;
+            --bg-tertiary: #1a1a24;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --border: #2a2a35;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+            animation: bgShift 20s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        nav .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero p {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.4s backwards;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #8a2be2);
+            color: white;
+            box-shadow: 0 10px 30px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+            transform: translateY(-3px);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Install Command */
+        .install-section {
+            background: var(--bg-secondary);
+            padding: 3rem;
+            border-radius: 20px;
+            margin: 4rem auto;
+            max-width: 800px;
+            border: 1px solid var(--border);
+            animation: fadeInUp 0.8s ease 0.6s backwards;
+        }
+
+        .install-command {
+            background: var(--bg-tertiary);
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 1.3rem;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .copy-btn {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Section */
+        section {
+            padding: 6rem 2rem;
+        }
+
+        h2 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            margin-bottom: 3rem;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: var(--accent);
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-glow), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        code {
+            color: #e0e0e0;
+        }
+
+        .keyword { color: #ff79c6; }
+        .string { color: #50fa7b; }
+        .function { color: #8be9fd; }
+        .comment { color: #6272a4; }
+
+        /* Warning Box */
+        .warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .warning strong {
+            color: #ffc107;
+        }
+
+        /* Example Section */
+        .example-section {
+            background: var(--bg-secondary);
+            padding: 3rem;
+            border-radius: 20px;
+            margin: 3rem 0;
+            border: 1px solid var(--border);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 4rem 2rem;
+            text-align: center;
+            margin-top: 6rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Scroll Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            nav .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .install-command {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <nav>
+        <div class="container">
+            <div class="logo">🔐 Chaco-256</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="#api">API</a></li>
+                <li><a href="https://github.com/ChescoV6/chaco256">GitHub</a></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Chaco-256</h1>
+            <p>Modern high-security encryption library for Python & Rust</p>
+            <div class="hero-buttons">
+                <a href="#quickstart" class="btn btn-primary">Get Started</a>
+                <a href="https://github.com/ChescoV6/chaco256" class="btn btn-secondary">View on GitHub</a>
+            </div>
+
+            <div class="install-section">
+                <h3 style="text-align: center; margin-bottom: 1rem;">Install in seconds</h3>
+                <div class="install-command">
+                    <span>pip install chaco256</span>
+                    <button class="copy-btn" onclick="copyInstall()">Copy</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="container">
+            <h2 class="fade-in">Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🔑</div>
+                    <h4>256-bit Keys</h4>
+                    <p>Maximum security with 2^256 key space. Post-quantum resistant.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">⚡</div>
+                    <h4>High Performance</h4>
+                    <p>Optimized ARX operations for 64-bit processors. 3-5 GB/s throughput.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🛡️</div>
+                    <h4>AEAD Support</h4>
+                    <p>Authenticated encryption with 256-bit tags. Detect tampering instantly.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🔒</div>
+                    <h4>Constant-Time</h4>
+                    <p>Side-channel resistant. No timing attacks or cache leaks.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🌐</div>
+                    <h4>Multi-Language</h4>
+                    <p>Python, Rust, and C/C++ support. Same API everywhere.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🎯</div>
+                    <h4>192-bit Nonces</h4>
+                    <p>Collision-resistant. Safe random nonce generation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quickstart" style="background: var(--bg-secondary);">
+        <div class="container">
+            <h2 class="fade-in">Quick Start</h2>
+
+            <div class="warning fade-in">
+                <strong>⚠️ Security Notice:</strong> Chaco-256 is a new design without extensive public cryptanalysis. For production, use AES-256-GCM or ChaCha20-Poly1305.
+            </div>
+
+            <div class="example-section fade-in">
+                <h3>Basic Encryption</h3>
+                <div class="code-block" data-lang="Python">
+                    <pre><code><span class="keyword">import</span> chaco256
+
+<span class="comment"># Generate key and nonce</span>
+key = chaco256.<span class="function">generate_key</span>()
+nonce = chaco256.<span class="function">generate_nonce</span>()
+
+<span class="comment"># Create AEAD cipher</span>
+aead = chaco256.<span class="function">Chaco256Aead</span>(key)
+
+<span class="comment"># Encrypt</span>
+plaintext = <span class="string">b"Hello, World!"</span>
+ciphertext, tag = aead.<span class="function">encrypt</span>(nonce, plaintext, <span class="string">b""</span>)
+
+<span class="comment"># Decrypt</span>
+decrypted = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, <span class="string">b""</span>)
+<span class="keyword">print</span>(decrypted)  <span class="comment"># b"Hello, World!"</span></code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="examples">
+        <div class="container">
+            <h2 class="fade-in">Examples</h2>
+
+            <div class="example-section fade-in">
+                <h3>File Encryption</h3>
+                <div class="code-block" data-lang="Python">
+                    <pre><code><span class="keyword">import</span> chaco256
+
+<span class="keyword">def</span> <span class="function">encrypt_file</span>(input_path, output_path, key):
+    <span class="comment"># Read file</span>
+    <span class="keyword">with</span> <span class="function">open</span>(input_path, <span class="string">'rb'</span>) <span class="keyword">as</span> f:
+        plaintext = f.<span class="function">read</span>()
+    
+    <span class="comment"># Generate nonce</span>
+    nonce = chaco256.<span class="function">generate_nonce</span>()
+    
+    <span class="comment"># Encrypt</span>
+    aead = chaco256.<span class="function">Chaco256Aead</span>(key)
+    ciphertext, tag = aead.<span class="function">encrypt</span>(nonce, plaintext, <span class="string">b""</span>)
+    
+    <span class="comment"># Write: nonce + ciphertext + tag</span>
+    <span class="keyword">with</span> <span class="function">open</span>(output_path, <span class="string">'wb'</span>) <span class="keyword">as</span> f:
+        f.<span class="function">write</span>(nonce + ciphertext + tag)
+
+<span class="comment"># Usage</span>
+key = chaco256.<span class="function">generate_key</span>()
+<span class="function">encrypt_file</span>(<span class="string">"document.txt"</span>, <span class="string">"document.enc"</span>, key)</code></pre>
+                </div>
+            </div>
+
+            <div class="example-section fade-in">
+                <h3>AEAD with Associated Data</h3>
+                <div class="code-block" data-lang="Python">
+                    <pre><code><span class="keyword">import</span> chaco256
+
+key = chaco256.<span class="function">generate_key</span>()
+nonce = chaco256.<span class="function">generate_nonce</span>()
+aead = chaco256.<span class="function">Chaco256Aead</span>(key)
+
+<span class="comment"># Encrypt with associated data</span>
+plaintext = <span class="string">b"Confidential data"</span>
+associated_data = <span class="string">b"Public header"</span>
+
+ciphertext, tag = aead.<span class="function">encrypt</span>(nonce, plaintext, associated_data)
+
+<span class="comment"># Decrypt and verify</span>
+<span class="keyword">try</span>:
+    plaintext = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, associated_data)
+    <span class="keyword">print</span>(<span class="string">"✓ Authentication successful"</span>)
+<span class="keyword">except</span> ValueError:
+    <span class="keyword">print</span>(<span class="string">"✗ Authentication failed!"</span>)</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="api" style="background: var(--bg-secondary);">
+        <div class="container">
+            <h2 class="fade-in">API Reference</h2>
+
+            <div class="fade-in">
+                <h3>chaco256.generate_key()</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Generate a random 256-bit encryption key.</p>
+                <div class="code-block" data-lang="Python">
+                    <pre><code>key = chaco256.<span class="function">generate_key</span>()  <span class="comment"># Returns 32 bytes</span></code></pre>
+                </div>
+
+                <h3>chaco256.generate_nonce()</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Generate a random 192-bit nonce.</p>
+                <div class="code-block" data-lang="Python">
+                    <pre><code>nonce = chaco256.<span class="function">generate_nonce</span>()  <span class="comment"># Returns 24 bytes</span></code></pre>
+                </div>
+
+                <h3>chaco256.Chaco256Aead(key, rounds=20)</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">AEAD cipher for authenticated encryption.</p>
+                <div class="code-block" data-lang="Python">
+                    <pre><code>aead = chaco256.<span class="function">Chaco256Aead</span>(key)
+
+<span class="comment"># Encrypt</span>
+ciphertext, tag = aead.<span class="function">encrypt</span>(nonce, plaintext, associated_data)
+
+<span class="comment"># Decrypt</span>
+plaintext = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, associated_data)</code></pre>
+                </div>
+
+                <h3>Security Levels</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>Rounds</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Light</td>
+                            <td>16</td>
+                            <td>High performance, short-term</td>
+                        </tr>
+                        <tr>
+                            <td>Standard</td>
+                            <td>20</td>
+                            <td>General purpose (recommended)</td>
+                        </tr>
+                        <tr>
+                            <td>Paranoid</td>
+                            <td>24</td>
+                            <td>Long-term, high-value data</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">Chaco-256 v1.0.0</p>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Created by <a href="https://github.com/ChescoV6">ChescoV6</a> | MIT License
+            </p>
+            <p style="color: var(--text-secondary);">
+                <a href="https://pypi.org/project/chaco256/">PyPI</a> • 
+                <a href="https://github.com/ChescoV6/chaco256">GitHub</a> • 
+                <a href="https://github.com/ChescoV6/chaco256/blob/main/README.md">Docs</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Copy install command
+        function copyInstall() {
+            navigator.clipboard.writeText('pip install chaco256');
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
+        }
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
