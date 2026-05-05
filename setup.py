@@ -13,15 +13,20 @@ def read_file(filename):
 
 setup(
     name='chaco256',
-    version='1.0.0',
+    version='1.0.1',
     author='Chaco-256 Project',
     author_email='contact@example.com',
     description='Chaco-256: High-Security Symmetric Encryption Algorithm',
     long_description=read_file('README.md'),
     long_description_content_type='text/markdown',
-    url='https://github.com/example/chaco256',
+    url='https://github.com/ChescoV6/chaco256',
     packages=find_packages(),
-    py_modules=['chaco256'],
+    py_modules=['chaco256', 'chaco256_cli'],
+    entry_points={
+        'console_scripts': [
+            'chaco256=chaco256_cli:main',
+        ],
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -38,8 +43,8 @@ setup(
     python_requires='>=3.6',
     keywords='cryptography encryption cipher aead security',
     project_urls={
-        'Bug Reports': 'https://github.com/example/chaco256/issues',
-        'Source': 'https://github.com/example/chaco256',
-        'Documentation': 'https://github.com/example/chaco256/blob/main/README.md',
+        'Bug Reports': 'https://github.com/ChescoV6/chaco256/issues',
+        'Source': 'https://github.com/ChescoV6/chaco256',
+        'Documentation': 'https://github.com/ChescoV6/chaco256/blob/main/README.md',
     },
 )

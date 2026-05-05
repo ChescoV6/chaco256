@@ -5,4 +5,5 @@ include SECURITY_ANALYSIS.md
 include USAGE_GUIDE.md
 include QUICKSTART.md
 include chaco256.py
+include chaco256_cli.py
 recursive-include examples *.py
