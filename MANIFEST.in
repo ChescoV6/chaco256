@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include SPECIFICATION.md
+include SECURITY_ANALYSIS.md
+include USAGE_GUIDE.md
+include QUICKSTART.md
+include chaco256.py
+recursive-include examples *.py

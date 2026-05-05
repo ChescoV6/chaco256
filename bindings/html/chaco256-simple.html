@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaco-256 Web Encryption Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .output {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+            color: #555;
+        }
+        .key-display {
+            background: #fff;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Chaco-256 Web Encryption</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Warning:</strong> This is a demonstration. Chaco-256 is experimental and not standardized. 
+            For production use, prefer AES-256-GCM or ChaCha20-Poly1305.
+        </div>
+
+        <div class="section">
+            <h2>1. Generate Keys</h2>
+            <button onclick="generateKeys()">Generate New Keys</button>
+            <label>Key (32 bytes):</label>
+            <div class="key-display" id="keyDisplay">Click "Generate New Keys" to create</div>
+            <label>Nonce (24 bytes):</label>
+            <div class="key-display" id="nonceDisplay">Click "Generate New Keys" to create</div>
+        </div>
+
+        <div class="section">
+            <h2>2. Encrypt Message</h2>
+            <label>Your Message:</label>
+            <textarea id="plaintext" placeholder="Enter your secret message here...">Hello, Chaco-256! This is a secure message.</textarea>
+            <button onclick="encryptMessage()">🔒 Encrypt</button>
+            <label>Encrypted Output:</label>
+            <div class="output" id="encryptOutput">Encrypted data will appear here...</div>
+        </div>
+
+        <div class="section">
+            <h2>3. Decrypt Message</h2>
+            <label>Encrypted Data (hex):</label>
+            <textarea id="ciphertext" placeholder="Paste encrypted hex data here..."></textarea>
+            <button onclick="decryptMessage()">🔓 Decrypt</button>
+            <label>Decrypted Output:</label>
+            <div class="output" id="decryptOutput">Decrypted message will appear here...</div>
+        </div>
+
+        <div class="section">
+            <h2>4. AEAD Mode (with Authentication)</h2>
+            <label>Message:</label>
+            <textarea id="aeadPlaintext" placeholder="Enter message to encrypt with authentication...">Confidential data with integrity protection</textarea>
+            <label>Additional Data (optional):</label>
+            <textarea id="aeadAD" placeholder="Public metadata (e.g., headers)..." style="min-height: 60px;">Public header information</textarea>
+            <button onclick="aeadEncrypt()">🔒 Encrypt + Authenticate</button>
+            <button onclick="aeadDecrypt()">🔓 Decrypt + Verify</button>
+            <label>Output:</label>
+            <div class="output" id="aeadOutput">AEAD output will appear here...</div>
+        </div>
+    </div>
+
+    <script src="chaco256.js"></script>
+    <script>
+        let currentKey = null;
+        let currentNonce = null;
+        let lastAEADCiphertext = null;
+        let lastAEADTag = null;
+        let lastAEADNonce = null;
+
+        function bytesToHex(bytes) {
+            return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function hexToBytes(hex) {
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes;
+        }
+
+        function generateKeys() {
+            try {
+                currentKey = generateKey();
+                currentNonce = generateNonce();
+                
+                document.getElementById('keyDisplay').textContent = bytesToHex(currentKey);
+                document.getElementById('nonceDisplay').textContent = bytesToHex(currentNonce);
+                
+                showSuccess('Keys generated successfully!');
+            } catch (e) {
+                showError('Error generating keys: ' + e.message);
+            }
+        }
+
+        function encryptMessage() {
+            if (!currentKey || !currentNonce) {
+                showError('Please generate keys first!');
+                return;
+            }
+
+            try {
+                const plaintext = document.getElementById('plaintext').value;
+                const plaintextBytes = new TextEncoder().encode(plaintext);
+                
+                const cipher = new Chaco256(currentKey, currentNonce);
+                const ciphertext = cipher.encrypt(plaintextBytes);
+                
+                const output = document.getElementById('encryptOutput');
+                output.className = 'output';
+                output.innerHTML = `
+                    <strong>Ciphertext (hex):</strong><br>
+                    ${bytesToHex(ciphertext)}<br><br>
+                    <strong>Length:</strong> ${ciphertext.length} bytes<br>
+                    <em>Copy this to decrypt later</em>
+                `;
+                
+                document.getElementById('ciphertext').value = bytesToHex(ciphertext);
+            } catch (e) {
+                showError('Encryption error: ' + e.message);
+            }
+        }
+
+        function decryptMessage() {
+            if (!currentKey || !currentNonce) {
+                showError('Please generate keys first!');
+                return;
+            }
+
+            try {
+                const ciphertextHex = document.getElementById('ciphertext').value.replace(/\s/g, '');
+                const ciphertext = hexToBytes(ciphertextHex);
+                
+                const cipher = new Chaco256(currentKey, currentNonce);
+                const plaintext = cipher.decrypt(ciphertext);
+                
+                const output = document.getElementById('decryptOutput');
+                output.className = 'output';
+                output.innerHTML = `
+                    <strong>Decrypted Message:</strong><br>
+                    ${new TextDecoder().decode(plaintext)}
+                `;
+            } catch (e) {
+                showError('Decryption error: ' + e.message);
+            }
+        }
+
+        function aeadEncrypt() {
+            if (!currentKey) {
+                showError('Please generate keys first!');
+                return;
+            }
+
+            try {
+                lastAEADNonce = generateNonce();
+                const plaintext = document.getElementById('aeadPlaintext').value;
+                const ad = document.getElementById('aeadAD').value;
+                
+                const plaintextBytes = new TextEncoder().encode(plaintext);
+                const adBytes = new TextEncoder().encode(ad);
+                
+                const aead = new Chaco256AEAD(currentKey);
+                const { ciphertext, tag } = aead.encrypt(lastAEADNonce, plaintextBytes, adBytes);
+                
+                lastAEADCiphertext = ciphertext;
+                lastAEADTag = tag;
+                
+                const output = document.getElementById('aeadOutput');
+                output.className = 'output';
+                output.innerHTML = `
+                    <strong>✓ Encrypted and Authenticated</strong><br><br>
+                    <strong>Nonce:</strong> ${bytesToHex(lastAEADNonce)}<br>
+                    <strong>Ciphertext:</strong> ${bytesToHex(ciphertext).substring(0, 64)}...<br>
+                    <strong>Tag:</strong> ${bytesToHex(tag)}<br>
+                    <strong>Length:</strong> ${ciphertext.length} bytes<br><br>
+                    <em>Click "Decrypt + Verify" to authenticate and decrypt</em>
+                `;
+            } catch (e) {
+                showError('AEAD encryption error: ' + e.message);
+            }
+        }
+
+        function aeadDecrypt() {
+            if (!currentKey || !lastAEADCiphertext || !lastAEADTag) {
+                showError('Please encrypt a message first!');
+                return;
+            }
+
+            try {
+                const ad = document.getElementById('aeadAD').value;
+                const adBytes = new TextEncoder().encode(ad);
+                
+                const aead = new Chaco256AEAD(currentKey);
+                const plaintext = aead.decrypt(lastAEADNonce, lastAEADCiphertext, lastAEADTag, adBytes);
+                
+                const output = document.getElementById('aeadOutput');
+                output.className = 'output';
+                output.innerHTML = `
+                    <strong>✓ Authentication Successful!</strong><br><br>
+                    <strong>Decrypted Message:</strong><br>
+                    ${new TextDecoder().decode(plaintext)}<br><br>
+                    <em>Message integrity verified</em>
+                `;
+            } catch (e) {
+                const output = document.getElementById('aeadOutput');
+                output.className = 'output error';
+                output.innerHTML = `
+                    <strong>✗ Authentication Failed!</strong><br><br>
+                    ${e.message}<br><br>
+                    <em>Message may have been tampered with</em>
+                `;
+            }
+        }
+
+        function showError(message) {
+            alert('Error: ' + message);
+        }
+
+        function showSuccess(message) {
+            console.log('Success: ' + message);
+        }
+
+        // Generate keys on load
+        window.onload = function() {
+            generateKeys();
+        };
+    </script>
+</body>
+</html>

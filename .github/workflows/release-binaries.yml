@@ -1,0 +1,66 @@
+name: Build and Release Binaries
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: libchaco256.so
+            asset_name: chaco256-linux-x86_64.tar.gz
+          - os: macos-latest
+            artifact_name: libchaco256.dylib
+            asset_name: chaco256-macos-x86_64.tar.gz
+          - os: windows-latest
+            artifact_name: chaco256.dll
+            asset_name: chaco256-windows-x86_64.zip
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    
+    - name: Build library
+      run: cargo build --release --features ffi
+    
+    - name: Package (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        mkdir -p package/lib package/include
+        cp target/release/${{ matrix.artifact_name }} package/lib/
+        cp bindings/chaco256.h package/include/
+        cp README.md LICENSE package/
+        tar czf ${{ matrix.asset_name }} -C package .
+    
+    - name: Package (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir package\lib package\include
+        copy target\release\${{ matrix.artifact_name }} package\lib\
+        copy bindings\chaco256.h package\include\
+        copy README.md package\
+        copy LICENSE package\
+        7z a ${{ matrix.asset_name }} .\package\*
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}
+        asset_name: ${{ matrix.asset_name }}
+        asset_content_type: application/octet-stream

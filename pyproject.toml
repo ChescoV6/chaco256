@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chaco256"
+version = "1.0.0"
+description = "Chaco-256: High-Security Symmetric Encryption Algorithm"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+keywords = ["cryptography", "encryption", "cipher", "aead", "security"]
+authors = [
+    {name = "Chaco-256 Project", email = "contact@example.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Security :: Cryptography",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/example/chaco256"
+Documentation = "https://github.com/example/chaco256/blob/main/README.md"
+Repository = "https://github.com/example/chaco256"
+"Bug Tracker" = "https://github.com/example/chaco256/issues"

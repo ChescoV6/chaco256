@@ -1,0 +1,34 @@
+[package]
+name = "chaco256"
+version = "1.0.0"
+edition = "2021"
+authors = ["Chaco-256 Project"]
+description = "Chaco-256: A modern, high-security symmetric encryption algorithm"
+license = "MIT"
+repository = "https://github.com/example/chaco256"
+keywords = ["cryptography", "encryption", "aead", "cipher"]
+categories = ["cryptography"]
+
+[dependencies]
+zeroize = { version = "1.7", features = ["derive"] }
+
+[features]
+default = []
+ffi = []  # Enable C FFI bindings
+
+[lib]
+name = "chaco256"
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[dev-dependencies]
+hex = "0.4"
+criterion = "0.5"
+
+[[bench]]
+name = "chaco256_bench"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
