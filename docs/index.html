@@ -661,12 +661,13 @@ nonce = chaco256.<span class="function">generate_nonce</span>()
 aead = chaco256.<span class="function">Chaco256Aead</span>(key)
 
 <span class="comment"># Encrypt</span>
-plaintext = <span class="string">b"Hello, World!"</span>
+message = <span class="string">"Hello, World!"</span>
+plaintext = message.<span class="function">encode</span>(<span class="string">'utf-8'</span>)
 ciphertext, tag = aead.<span class="function">encrypt</span>(nonce, plaintext, <span class="string">b""</span>)
 
 <span class="comment"># Decrypt</span>
 decrypted = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, <span class="string">b""</span>)
-<span class="keyword">print</span>(decrypted)  <span class="comment"># b"Hello, World!"</span></code></pre>
+<span class="keyword">print</span>(decrypted.<span class="function">decode</span>(<span class="string">'utf-8'</span>))  <span class="comment"># Hello, World!</span></code></pre>
                 </div>
             </div>
         </div>
@@ -704,6 +705,27 @@ key = chaco256.<span class="function">generate_key</span>()
             </div>
 
             <div class="example-section fade-in">
+                <h3>String Encryption</h3>
+                <div class="code-block" data-lang="Python">
+                    <pre><code><span class="keyword">import</span> chaco256
+
+key = chaco256.<span class="function">generate_key</span>()
+nonce = chaco256.<span class="function">generate_nonce</span>()
+aead = chaco256.<span class="function">Chaco256Aead</span>(key)
+
+<span class="comment"># Encrypt a string</span>
+message = <span class="string">"Secret message"</span>
+plaintext = message.<span class="function">encode</span>(<span class="string">'utf-8'</span>)
+ciphertext, tag = aead.<span class="function">encrypt</span>(nonce, plaintext, <span class="string">b""</span>)
+
+<span class="comment"># Decrypt back to string</span>
+decrypted_bytes = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, <span class="string">b""</span>)
+decrypted_message = decrypted_bytes.<span class="function">decode</span>(<span class="string">'utf-8'</span>)
+<span class="keyword">print</span>(decrypted_message)  <span class="comment"># Secret message</span></code></pre>
+                </div>
+            </div>
+
+            <div class="example-section fade-in">
                 <h3>AEAD with Associated Data</h3>
                 <div class="code-block" data-lang="Python">
                     <pre><code><span class="keyword">import</span> chaco256
@@ -713,14 +735,16 @@ nonce = chaco256.<span class="function">generate_nonce</span>()
 aead = chaco256.<span class="function">Chaco256Aead</span>(key)
 
 <span class="comment"># Encrypt with associated data</span>
-plaintext = <span class="string">b"Confidential data"</span>
+message = <span class="string">"Confidential data"</span>
+plaintext = message.<span class="function">encode</span>(<span class="string">'utf-8'</span>)
 associated_data = <span class="string">b"Public header"</span>
 
 ciphertext, tag = aead.<span class="function">encrypt</span>(nonce, plaintext, associated_data)
 
 <span class="comment"># Decrypt and verify</span>
 <span class="keyword">try</span>:
-    plaintext = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, associated_data)
+    decrypted = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, associated_data)
+    <span class="keyword">print</span>(decrypted.<span class="function">decode</span>(<span class="string">'utf-8'</span>))
     <span class="keyword">print</span>(<span class="string">"Authentication successful"</span>)
 <span class="keyword">except</span> ValueError:
     <span class="keyword">print</span>(<span class="string">"Authentication failed!"</span>)</code></pre>

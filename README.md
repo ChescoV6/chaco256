@@ -78,11 +78,13 @@ nonce = chaco256.generate_nonce()
 
 # Encrypt
 cipher = chaco256.Chaco256(key, nonce)
-ciphertext = cipher.encrypt(b"Hello, World!")
+message = "Hello, World!"
+ciphertext = cipher.encrypt(message.encode('utf-8'))
 
 # Decrypt
 cipher2 = chaco256.Chaco256(key, nonce)
 plaintext = cipher2.decrypt(ciphertext)
+print(plaintext.decode('utf-8'))  # Hello, World!
 ```
 
 ### Python - AEAD Mode
@@ -95,13 +97,15 @@ nonce = chaco256.generate_nonce()
 aead = chaco256.Chaco256Aead(key)
 
 # Encrypt with authentication
-plaintext = b"Secret message"
+message = "Secret message"
+plaintext = message.encode('utf-8')
 ad = b"Public header"
 ciphertext, tag = aead.encrypt(nonce, plaintext, ad)
 
 # Decrypt and verify
 try:
-    plaintext = aead.decrypt(nonce, ciphertext, tag, ad)
+    decrypted = aead.decrypt(nonce, ciphertext, tag, ad)
+    print(decrypted.decode('utf-8'))  # Secret message
     print("Authenticated and decrypted successfully")
 except ValueError:
     print("Authentication failed!")
