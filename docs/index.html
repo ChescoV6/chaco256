@@ -541,7 +541,7 @@
             <div class="install-section">
                 <h3 style="text-align: center; margin-bottom: 1rem;">Install in seconds</h3>
                 <div class="install-command">
-                    <span>pip install chaco256</span>
+                    <span>python -m pip install chaco256</span>
                     <button class="copy-btn" onclick="copyInstall()">Copy</button>
                 </div>
             </div>
@@ -629,7 +629,27 @@
             </div>
 
             <div class="example-section fade-in">
-                <h3>Basic Encryption</h3>
+                <h3>Command Line Usage</h3>
+                <div class="code-block" data-lang="Bash">
+                    <pre><code><span class="comment"># Encrypt a file</span>
+chaco256 encrypt input.txt output.enc
+
+<span class="comment"># Decrypt a file</span>
+chaco256 decrypt output.enc decrypted.txt --key output.enc.key
+
+<span class="comment"># Generate a key</span>
+chaco256 keygen --output my.key
+
+<span class="comment"># Encrypt text</span>
+chaco256 encrypt-text <span class="string">"Hello, World!"</span>
+
+<span class="comment"># Get help</span>
+chaco256 --help</code></pre>
+                </div>
+            </div>
+
+            <div class="example-section fade-in">
+                <h3>Python API - Basic Encryption</h3>
                 <div class="code-block" data-lang="Python">
                     <pre><code><span class="keyword">import</span> chaco256
 
@@ -786,7 +806,7 @@ plaintext = aead.<span class="function">decrypt</span>(nonce, ciphertext, tag, a
     <script>
         // Copy install command
         function copyInstall() {
-            navigator.clipboard.writeText('pip install chaco256');
+            navigator.clipboard.writeText('python -m pip install chaco256');
             const btn = document.querySelector('.copy-btn');
             btn.textContent = 'Copied!';
             setTimeout(() => btn.textContent = 'Copy', 2000);

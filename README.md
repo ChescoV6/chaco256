@@ -4,7 +4,7 @@
 
 Chaco-256 is a modern, high-security symmetric encryption algorithm designed for 2026 security standards. It provides both stream cipher and AEAD (Authenticated Encryption with Associated Data) modes with a focus on cryptographic strength, performance, and ease of secure implementation.
 
-## ⚠️ Security Warning
+## Security Warning
 
 **Chaco-256 is a new cryptographic design that has not undergone extensive public cryptanalysis.** For production systems, use established standards like **AES-256-GCM** or **ChaCha20-Poly1305** unless you have specific requirements and expert cryptographic review.
 
@@ -53,90 +53,46 @@ Chaco-256 is designed to resist:
 
 ## Installation
 
-### Rust
-
-Add to your `Cargo.toml`:
-
-```toml
-[dependencies]
-chaco256 = "1.0"
-```
-
 ### Python
 
 ```bash
-# Copy chaco256.py to your project
-cp chaco256.py your_project/
+python -m pip install chaco256
+```
+
+Or if you're using the `py` launcher on Windows:
+
+```bash
+py -m pip install chaco256
 ```
 
 ## Quick Start
 
-### Rust - Stream Cipher
-
-```rust
-use chaco256::{Chaco256, Key, Nonce};
-
-// Create key and nonce (use proper key derivation in production)
-let key = Key::from_slice(&[0u8; 32]);
-let nonce = Nonce::from_slice(&[0u8; 24]);
-
-// Encrypt
-let mut cipher = Chaco256::new(&key, &nonce);
-let mut data = b"Hello, World!".to_vec();
-cipher.encrypt(&mut data);
-
-// Decrypt
-let mut cipher2 = Chaco256::new(&key, &nonce);
-cipher2.decrypt(&mut data);
-```
-
-### Rust - AEAD Mode
-
-```rust
-use chaco256::{Chaco256Aead, Key, Nonce};
-
-let key = Key::from_slice(&[0u8; 32]);
-let nonce = Nonce::from_slice(&[0u8; 24]);
-let aead = Chaco256Aead::new(&key);
-
-// Encrypt with authentication
-let plaintext = b"Secret message";
-let associated_data = b"Public header";
-let (ciphertext, tag) = aead.encrypt(&nonce, plaintext, associated_data);
-
-// Decrypt and verify
-match aead.decrypt(&nonce, &ciphertext, &tag, associated_data) {
-    Ok(plaintext) => println!("Decrypted: {:?}", plaintext),
-    Err(e) => println!("Authentication failed: {}", e),
-}
-```
-
 ### Python - Stream Cipher
 
 ```python
-from chaco256 import Chaco256, generate_key, generate_nonce
+import chaco256
 
 # Generate key and nonce
-key = generate_key()
-nonce = generate_nonce()
+key = chaco256.generate_key()
+nonce = chaco256.generate_nonce()
 
 # Encrypt
-cipher = Chaco256(key, nonce)
+cipher = chaco256.Chaco256(key, nonce)
 ciphertext = cipher.encrypt(b"Hello, World!")
 
 # Decrypt
-cipher2 = Chaco256(key, nonce)
+cipher2 = chaco256.Chaco256(key, nonce)
 plaintext = cipher2.decrypt(ciphertext)
 ```
 
 ### Python - AEAD Mode
 
 ```python
-from chaco256 import Chaco256Aead, generate_key, generate_nonce
+import chaco256
 
-key = generate_key()
-nonce = generate_nonce()
-aead = Chaco256Aead(key)
+key = chaco256.generate_key()
+nonce = chaco256.generate_nonce()
+aead = chaco256.Chaco256Aead(key)
 
 # Encrypt with authentication
 plaintext = b"Secret message"
@@ -149,6 +105,27 @@ try:
     print("Authenticated and decrypted successfully")
 except ValueError:
     print("Authentication failed!")
+```
+
+### Command Line Interface
+
+After installation, you can use the `chaco256` command:
+
+```bash
+# Encrypt a file
+chaco256 encrypt input.txt output.enc
+
+# Decrypt a file
+chaco256 decrypt output.enc decrypted.txt --key output.enc.key
+
+# Generate a key
+chaco256 keygen --output my.key
+
+# Encrypt text
+chaco256 encrypt-text "Hello, World!"
+
+# Get help
+chaco256 --help
 ```
 
 ## Architecture
